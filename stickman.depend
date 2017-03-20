@@ -1,0 +1,109 @@
+# depslib dependency file v1.0
+1489617291 source:c:\users\mypc\desktop\cprogramming\minesweeper\main.cpp
+	<iostream>
+	<SDL.h>
+	"gameRender.h"
+
+1489617339 source:c:\users\mypc\desktop\cprogramming\minesweeper\gamerender.cpp
+	<SDL.h>
+	<iostream>
+	"gameRender.h"
+
+1489617130 c:\users\mypc\desktop\cprogramming\minesweeper\gamerender.h
+	<SDL.h>
+
+1489691138 source:c:\users\mypc\desktop\cprogramming\stickhero\gamerender.cpp
+	<SDL.h>
+	<iostream>
+	<SDL_image.h>
+	"gameRender.h"
+	<cstdlib>
+
+1489685691 c:\users\mypc\desktop\cprogramming\stickhero\gamerender.h
+	<SDL.h>
+
+1489692494 source:c:\users\mypc\desktop\cprogramming\stickhero\main.cpp
+	<iostream>
+	<SDL.h>
+	<ctime>
+	"gameRender.h"
+	"land.h"
+
+1489692436 source:c:\users\mypc\desktop\cprogramming\stickhero\stickman.cpp
+	<SDL.h>
+	<SDL_image.h>
+	<cstdlib>
+	"land.h"
+
+1489691875 c:\users\mypc\desktop\cprogramming\stickhero\stickman.h
+	<vector>
+
+1489692869 source:c:\users\mypc\desktop\cprogramming\stickhero\land.cpp
+	<SDL.h>
+	<SDL_image.h>
+	<cstdlib>
+	"land.h"
+
+1489692281 c:\users\mypc\desktop\cprogramming\stickhero\land.h
+	<vector>
+
+1490016745 source:c:\users\mypc\desktop\cprogramming\stickman\gamerender.cpp
+	<SDL.h>
+	<iostream>
+	<SDL_image.h>
+	"gameRender.h"
+	<cstdlib>
+	<SDL_ttf.h>
+	<string.h>
+
+1490015271 c:\users\mypc\desktop\cprogramming\stickman\gamerender.h
+	<SDL.h>
+	<SDL_ttf.h>
+
+1489933346 source:c:\users\mypc\desktop\cprogramming\stickman\land.cpp
+	<SDL.h>
+	<SDL_image.h>
+	<cstdlib>
+	"land.h"
+
+1489928091 c:\users\mypc\desktop\cprogramming\stickman\land.h
+	<vector>
+
+1490031958 source:c:\users\mypc\desktop\cprogramming\stickman\main.cpp
+	<iostream>
+	<SDL.h>
+	<SDL_image.h>
+	<ctime>
+	<fstream>
+	<vector>
+	"gameRender.h"
+	"land.h"
+	"stickman.h"
+	"menuitem.h"
+	"highscore.h"
+
+1489929088 source:c:\users\mypc\desktop\cprogramming\stickman\stickman.cpp
+	<SDL.h>
+	"stickman.h"
+	"land.h"
+
+1489929093 c:\users\mypc\desktop\cprogramming\stickman\stickman.h
+	<SDL.h>
+	"land.h"
+
+1489838426 source:c:\users\mypc\desktop\cprogramming\stickman\resoure.rc
+
+1489859938 source:c:\users\mypc\desktop\cprogramming\stickman\menuitem.cpp
+	"menuitem.h"
+
+1489859944 c:\users\mypc\desktop\cprogramming\stickman\menuitem.h
+
+1490028735 source:c:\users\mypc\desktop\cprogramming\stickman\highscore.cpp
+	<fstream>
+	"highscore.h"
+	<cstring>
+	<iostream>
+
+1490028783 c:\users\mypc\desktop\cprogramming\stickman\highscore.h
+	<fstream>
+
