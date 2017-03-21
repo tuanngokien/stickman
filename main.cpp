@@ -4,6 +4,7 @@
 #include <ctime>
 #include <fstream>
 #include <vector>
+
 #include "gameRender.h"
 #include "land.h"
 #include "stickman.h"
@@ -11,9 +12,12 @@
 #include "highscore.h"
 
 using namespace std;
+
 int initStartGame(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame);
 void initMainGame(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame);
-void initHighScore(SDL_Window* window,SDL_Renderer* renderer,bool&exitGame);
+void initHighScore(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame);
+void initInstruction(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame);
+
 void renderBackground(gameRender& renderBG,int& BGoffset,int score);
 bool checkGameOver(int stickLenght,land Land,stickman stickMan);
 bool delay(int timeDelay);
@@ -24,6 +28,8 @@ void renderStickMan(gameRender& renderMan,stickman& Man,bool& runningStatus,int&
 bool playAgain();
 bool pauseCheck(int x,int y);
 string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore);
+
+
 int main(int argc,char** argv){
     srand(time(0));
     SDL_Window* window=nullptr;
@@ -40,6 +46,9 @@ int main(int argc,char** argv){
                 initHighScore(window,renderer,exit);
                 break;
         case 3: exit=true;
+                break;
+        case 4:renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+                initInstruction(window,renderer,exit);
                 break;
         }
     }
@@ -196,6 +205,7 @@ bool playAgain(){
         }
     }
 }
+
 bool pauseCheck(int x,int y){
     menuItem buttonResume={360,10,30,30};
     if(buttonResume.checkArea(x,y))
@@ -361,21 +371,31 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
 
 int initStartGame(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
     gameRender renderStart(renderer);
+    renderStart.loadImage("image/mainmenu.png");
+    SDL_Rect BGrect={0,0,400,400};
+
     gameRender buttonStart(renderer);
     buttonStart.loadImage("image/start.png");
     SDL_Rect bStartRect={135,149,139,70};
+
     gameRender buttonScore(renderer);
     buttonScore.loadImage("image/highscore.png");
     SDL_Rect bScoreRect={137,232,139,70};
+
     gameRender buttonExit(renderer);
     buttonExit.loadImage("image/exit.png");
     SDL_Rect bExitRect={141,316,139,70};
+
+    gameRender buttonInst(renderer);
+    buttonInst.loadImage("image/instruction.png");
+    SDL_Rect bInstRect={332,320,68,73};
+
     SDL_Rect defaultButton={0,0,139,70};
     menuItem start(137,151,139,70);
     menuItem highscore(137,232,139,70);
-    menuItem exit(137,316,139,70);
-    renderStart.loadImage("image/mainmenu.png");
-    SDL_Rect BGrect={0,0,400,400};
+    menuItem exit(141,316,139,70);
+    menuItem inst(332,320,68,73);
+
     SDL_Event event;
     while(true){
         while(SDL_PollEvent(&event)){
@@ -400,6 +420,11 @@ int initStartGame(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
                     return 3;
                     exitGame=true;
                 }
+            }
+            else if(inst.checkArea(event.button.x,event.button.y)){
+                buttonInst.render(0,0,&bInstRect);
+                if(event.type==SDL_MOUSEBUTTONDOWN)
+                    return 4;
             }
             SDL_Delay(20);
             SDL_RenderPresent(renderer);
@@ -442,6 +467,42 @@ void initHighScore(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
     SDL_RenderPresent(renderer);
     bool quit=false;
     while(!quit){
+        while(SDL_PollEvent(&event)){
+            if(event.type==SDL_QUIT){
+                quit=true;
+                exitGame=true;
+            }
+            else if(event.type==SDL_MOUSEBUTTONDOWN){
+                if(buttonBack.checkArea(event.button.x,event.button.y))
+                    quit=true;
+            }
+        }
+    }
+}
+
+void initInstruction(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
+    gameRender gif1(renderer);
+    gif1.loadImage("image/inst1.png");
+    gameRender gif2(renderer);
+    gif2.loadImage("image/inst2.png");
+    gameRender gif3(renderer);
+    gif3.loadImage("image/inst3.png");
+    SDL_Rect defaultRect={0,0,400,400};
+    int gifLoad=1;
+    menuItem buttonBack(0,345,52,52);
+    bool quit=false;
+    SDL_Event event;
+    while(!quit){
+        if(gifLoad<=40)
+            gif1.render(0,0,&defaultRect);
+        else if(gifLoad<=80)
+            gif2.render(0,0,&defaultRect);
+        else if(gifLoad<=130)
+            gif3.render(0,0,&defaultRect);
+        else
+            gifLoad=0;
+        gifLoad++;
+        SDL_RenderPresent(renderer);
         while(SDL_PollEvent(&event)){
             if(event.type==SDL_QUIT){
                 quit=true;
