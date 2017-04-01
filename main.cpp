@@ -22,7 +22,6 @@ SDL_Rect getRectBGImage(int score);
 void renderBackground(gameRender& renderBG,int& BGoffset,int score);
 bool checkGameOver(int stickLength,land Land,stickman stick);
 bool checkPerfect(int stickLength,land Land,stickman stick);
-bool delay(int timeDelay);
 SDL_Rect getRectManImage(int id);
 void renderStickMan(gameRender& renderMan,stickman& Man,bool& runningStatus,int& BGoffset,land Land,int scrollLand,bool gameOver);
 bool playAgain();
@@ -74,20 +73,6 @@ bool checkPerfect(int stickLength,land Land,stickman stick){
         return 0;
 }
 
-bool delay(int timeDelay){
-    /* timeDelay*10 mlsecond*/
-    static int delayCount=1;
-    delayCount++;
-    if(timeDelay==0){
-        delayCount=1;
-        return 1;
-    }
-    if((delayCount-1)%timeDelay==0){
-        delayCount=1;
-        return 1;
-    }
-    return 0;
-}
 
 void renderStickMan(gameRender& renderMan,stickman& Man,bool& runningStatus,int& BGoffset,land Land,int scrollLand,bool gameOver){
     SDL_Rect manInImage,manInRender;
@@ -364,12 +349,13 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
             if(!runningStatus){
                 if(gameOver){
                     if(dead){
+                        SDL_Delay(500);
                         landTemp={Land.getWidth(0),stick.getY(),4,lengthTemp};
-                        SDL_Rect ManInImage=getRectManImage(3),manInRender={Man.getX()+lengthTemp+10,300,73,73};
+                        SDL_Rect ManInImage=getRectManImage(3),manInRender={Man.getX()+lengthTemp+10,250,73,73};
                         renderMan.render(0,0,&manInRender,&ManInImage);
                         renderStick.render(0,0,&landTemp);
                         SDL_RenderPresent(renderer);
-                        SDL_Delay(500);
+                        SDL_Delay(1000);
                         if(score<=currHighScore)
                             renderGameOver.render(0,0,&gameOverRect);
                         else{
@@ -389,6 +375,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
                                 MouseDown=false;
                                 runningStatus=false;
                                 gameOver=false;
+                                scrollLand=0;
                                 stick.setPosition(Land.getWidth(0)-5,224);
                                 Man.setPosition(stick.getX()-30,stick.getY()-76);
                                 renderScore.loadFont(20,PURPLE,score);
@@ -522,7 +509,7 @@ void initHighScore(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
 //    }
     for(int i=0;i<3;i++){
         temp=(*read).getName()+" - "+intToString((*read).getScore());
-        scoreBoard.loadString(20,RED,temp);
+        scoreBoard.loadString(23,RED,temp);
         scoreBoard.render(0,0,&person[i]);
         read++;
     }
