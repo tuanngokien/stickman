@@ -10,8 +10,7 @@ void stickman::setPosition(int x,int y){
 }
 
 void stickman::updateStickPosition(land Land){
-    posX=0;
-    posX+=Land.getWidth(1)-5;
+    posX=Land.getWidth(0)-5;
 }
 
 int stickman::getX(){

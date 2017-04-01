@@ -60,16 +60,16 @@
 	<SDL.h>
 	<SDL_ttf.h>
 
-1489933346 source:c:\users\mypc\desktop\cprogramming\stickman\land.cpp
+1491008399 source:c:\users\mypc\desktop\cprogramming\stickman\land.cpp
 	<SDL.h>
 	<SDL_image.h>
 	<cstdlib>
 	"land.h"
 
-1489928091 c:\users\mypc\desktop\cprogramming\stickman\land.h
+1491007533 c:\users\mypc\desktop\cprogramming\stickman\land.h
 	<vector>
 
-1490072357 source:c:\users\mypc\desktop\cprogramming\stickman\main.cpp
+1491020106 source:c:\users\mypc\desktop\cprogramming\stickman\main.cpp
 	<iostream>
 	<SDL.h>
 	<SDL_image.h>
@@ -82,7 +82,7 @@
 	"menuitem.h"
 	"highscore.h"
 
-1489929088 source:c:\users\mypc\desktop\cprogramming\stickman\stickman.cpp
+1490999912 source:c:\users\mypc\desktop\cprogramming\stickman\stickman.cpp
 	<SDL.h>
 	"stickman.h"
 	"land.h"
