@@ -59,7 +59,7 @@ int main(int argc,char** argv){
 
 bool checkGameOver(int stickLength,land Land,stickman stick){
     SDL_Rect rect_temp=Land.getLandInfo(1);
-    if(stick.getX()+stickLength>rect_temp.x+1 && stick.getX()+stickLength<=rect_temp.x+Land.getWidth(1))
+    if(stick.getX()+stickLength>rect_temp.x+1 && stick.getX()+stickLength<=rect_temp.x+Land.getWidth(1)+1)
         return 0;
     else
         return 1;
@@ -67,7 +67,7 @@ bool checkGameOver(int stickLength,land Land,stickman stick){
 
 bool checkPerfect(int stickLength,land Land,stickman stick){
     SDL_Rect rect_temp=Land.getPFinfo(1);
-    if(stick.getX()+stickLength>rect_temp.x+1 && stick.getX()+stickLength<=rect_temp.x+5)
+    if(stick.getX()+stickLength>rect_temp.x+2 && stick.getX()+stickLength<=rect_temp.x+6)
         return 1;
     else
         return 0;
@@ -76,7 +76,7 @@ bool checkPerfect(int stickLength,land Land,stickman stick){
 
 void renderStickMan(gameRender& renderMan,stickman& Man,bool& runningStatus,int& BGoffset,land Land,int scrollLand,bool gameOver){
     SDL_Rect manInImage,manInRender;
-    static int positionRunning,fixed=1;
+    static int positionRunning=0,fixed=1;
     if(!runningStatus){
         manInImage=getRectManImage(2);
         fixed=0;
@@ -136,11 +136,12 @@ string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore){
                     name.w-=20;
                 }
                 else if(event.key.keysym.sym==SDLK_v && SDL_GetModState() & KMOD_CTRL){
-                    s=SDL_GetClipboardText();
                     name.w=+s.length()*20;
+                    s=SDL_GetClipboardText();
                 }
-                else if(event.key.keysym.sym==SDLK_c && SDL_GetModState() & KMOD_CTRL)
+                else if(event.key.keysym.sym==SDLK_c && SDL_GetModState() & KMOD_CTRL){
                     SDL_SetClipboardText(s.c_str());
+                }
                 else if(event.key.keysym.sym==SDLK_RETURN){
                      renderHighScore.render(0,0,&HSrect);
                      renderFont.loadString(24,RED,"Saved");
@@ -246,7 +247,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
     renderStick.loadImage("image/stick.png");
     stickman stick;
     stick.setPosition(Land.getWidth(0)-5,224);
-    int stickLength=0,lengthTemp=0;
+    int stickLength=0;
       //load imgage StickMan, colorkey is white(remove white from image)
     gameRender renderMan(renderer);
     renderMan.loadImage("image/prince.png",&colorKey);
@@ -262,6 +263,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
     gameRender renderGameOver(renderer);
     renderGameOver.loadImage("image/gameover.png",&colorKey);
     SDL_Rect gameOverRect={0,0,400,400};
+    int frame=0;
     //load HighScore
     gameRender renderHighScore(renderer);
     renderHighScore.loadImage("image/GO_highscore.png",&colorKey);
@@ -294,7 +296,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
         for(int i=0;i<10;i++){
             landTemp=Land.getLandInfo(i);
             pfTemp=Land.getPFinfo(i);
-            if(runningStatus){
+            if(runningStatus || (gameOver && !runningStatus)){
                 landTemp.x+=scrollLand;
                 pfTemp.x+=scrollLand;
             }
@@ -331,15 +333,15 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
                 gameOver=checkGameOver(stickLength,Land,stick);
                 if(!gameOver){
                     if(stick.getX()+scrollLand>=0)
-                        landTemp={stick.getX()+scrollLand,stick.getY()-4,stickLength,4};
+                        landTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength,4};
                     else if(Land.getX(1)+scrollLand>0)
-                        landTemp={0,stick.getY()-4,stickLength+stick.getX()+scrollLand,4};
+                        landTemp={0,stick.getY()-4,stickLength+stick.getX()+scrollLand-2,4};
                     else
                         runningStatus=false;
                 }
                 else {
                     if(scrollLand+stickLength>=0)
-                        landTemp={stick.getX()+scrollLand,stick.getY()-4,stickLength,4};
+                        landTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength-2,4};
                     else
                         runningStatus=false;
                 }
@@ -349,47 +351,51 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
             if(!runningStatus){
                 if(gameOver){
                     if(dead){
-                        SDL_Delay(500);
-                        landTemp={Land.getWidth(0),stick.getY(),4,lengthTemp};
-                        SDL_Rect ManInImage=getRectManImage(3),manInRender={Man.getX()+lengthTemp+10,250,73,73};
-                        renderMan.render(0,0,&manInRender,&ManInImage);
+                        if(frame==0)
+                            SDL_Delay(500);
+                        landTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength,4};
                         renderStick.render(0,0,&landTemp);
+                        SDL_Rect ManInImage=getRectManImage(3),manInRender={Man.getX()+25,225+frame*4,73,73};
+                        frame++;
+                        renderMan.render(0,0,&manInRender,&ManInImage);
                         SDL_RenderPresent(renderer);
-                        SDL_Delay(1000);
-                        if(score<=currHighScore)
-                            renderGameOver.render(0,0,&gameOverRect);
-                        else{
-                            name=getInfo(renderer,renderHighScore);
-                            scoreTemp.setInfo(name,score);
-                            ofstream fileWrite("hscore.dat",ios::app | ios::binary);
-                            fileWrite.write((char*)&scoreTemp,sizeof(highscore));
-                            SDL_Delay(1000);
-                            break;
+                        if(225+frame*4>=400){
+                            SDL_Delay(500);
+                            if(score<=currHighScore)
+                                renderGameOver.render(0,0,&gameOverRect);
+                            else{
+                                name=getInfo(renderer,renderHighScore);
+                                scoreTemp.setInfo(name,score);
+                                ofstream fileWrite("hscore.dat",ios::app | ios::binary);
+                                fileWrite.write((char*)&scoreTemp,sizeof(highscore));
+                                SDL_Delay(1000);
+                                break;
+                            }
+                            SDL_RenderPresent(renderer);
+                            if(playAgain()){
+                                    BGoffset=0;
+                                    stickLength=0;
+                                    score=0;
+                                    Land.resetLand();
+                                    MouseDown=false;
+                                    runningStatus=false;
+                                    gameOver=false;
+                                    frame=0;
+                                    scrollLand=0;
+                                    stick.setPosition(Land.getWidth(0)-5,224);
+                                    Man.setPosition(stick.getX()-30,stick.getY()-76);
+                                    renderScore.loadFont(20,PURPLE,score);
+                            }
+                            else
+                                quit=true;
                         }
-                        SDL_RenderPresent(renderer);
-                        if(playAgain()){
-                                BGoffset=0;
-                                stickLength=0;
-                                score=0;
-                                Land.resetLand();
-                                MouseDown=false;
-                                runningStatus=false;
-                                gameOver=false;
-                                scrollLand=0;
-                                stick.setPosition(Land.getWidth(0)-5,224);
-                                Man.setPosition(stick.getX()-30,stick.getY()-76);
-                                renderScore.loadFont(20,PURPLE,score);
-                        }
-                        else
-                            quit=true;
                     }
-                    if(!dead){
+                    if(!dead)
                         dead=true;
-                        lengthTemp=stickLength;
-                        stickLength=10;
+                    else{
+                        if(frame==0)
+                            dead=false;
                     }
-                    else
-                        dead=false;
                 }
                 else{
                         //update
