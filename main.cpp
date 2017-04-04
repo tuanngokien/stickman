@@ -341,10 +341,10 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
         if(gameRender::waitMouseDown(event)&& !runningStatus && !dead){
             if(!(event.button.x> 360 && event.button.y<40) && stickLength<Land.getX(2)-Land.getWidth(0)-3 ){
                 stickLength+=4;
-                landTemp={stick.getX(),stick.getY()-stickLength,4,stickLength};
-                renderStick.render(0,0,&landTemp);
                 MouseDown=true;
             }
+            landTemp={stick.getX(),stick.getY()-stickLength,4,stickLength};
+            renderStick.render(0,0,&landTemp);
         }
         else if(MouseDown){
             if(!dead){
