@@ -69,10 +69,11 @@
 1491007533 c:\users\mypc\desktop\cprogramming\stickman\land.h
 	<vector>
 
-1491218555 source:c:\users\mypc\desktop\cprogramming\stickman\main.cpp
+1491329768 source:c:\users\mypc\desktop\cprogramming\stickman\main.cpp
 	<iostream>
 	<SDL.h>
 	<SDL_image.h>
+	<SDL_mixer.h>
 	<ctime>
 	<fstream>
 	<vector>
