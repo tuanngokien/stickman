@@ -25,26 +25,22 @@ private:
     int width;
     int height;
     SDL_Renderer* renderer;
-    SDL_Color color;
     SDL_Texture* texture;
     TTF_Font *font;
 public:
     gameRender(SDL_Renderer* renderer_);
     ~gameRender();
-    void setSize(int height,int witdth);
     int getWidth();
     int getHeight();
-    void setPosition(int x,int y);
     void render(int x,int y,SDL_Rect* dstrect =nullptr,SDL_Rect* srcrect =nullptr);
     void loadImage(std::string path,SDL_Color* colorKey =nullptr);
-    void setColor(SDL_Color color_);
     void loadFont(int size,SDL_Color color,int score);
     void loadString(int size,SDL_Color color,std::string s);
     static bool waitMouseDown(SDL_Event &event);
+    void setTextureSize();
 };
 
 //addon
-int mypow(int x,int n);
-std::string intToString(int integer);
+std::string intToString(int number);
 
 #endif

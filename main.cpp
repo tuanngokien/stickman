@@ -14,10 +14,13 @@
 
 using namespace std;
 
-int initStartGame(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame);
-void initMainGame(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame);
-void initHighScore(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame);
-void initInstruction(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame);
+bool exitGame=false;
+bool soundOn=true;
+
+int initStartGame(SDL_Window* window,SDL_Renderer* renderer);
+void initMainGame(SDL_Window* window,SDL_Renderer* renderer);
+void initHighScore(SDL_Window* window,SDL_Renderer* renderer);
+void initInstruction(SDL_Window* window,SDL_Renderer* renderer);
 
 SDL_Rect getRectBGImage(int score);
 void renderBackground(gameRender& renderBG,int& BGoffset,int score);
@@ -27,7 +30,6 @@ SDL_Rect getRectManImage(int id);
 void renderStickMan(gameRender& renderMan,Mix_Chunk * horseEffect,stickman& Man,bool& runningStatus,int& BGoffset,land Land,int scrollLand,bool gameOver);
 bool playAgain();
 bool pauseCheck(int x,int y);
-int getScoreSize(int score);
 string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore);
 
 
@@ -35,26 +37,29 @@ int main(int argc,char** argv){
     srand(time(0));
     SDL_Window* window=nullptr;
     SDL_Renderer* renderer=nullptr;
-    bool exit=false;
     window=SDL_CreateWindow("STICKMAN - NKT ",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,400,400,0);
-    while(!exit){
+    Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 );
+    while(!exitGame){
         renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-        switch(initStartGame(window,renderer,exit)){
+        switch(initStartGame(window,renderer)){
         case 1: renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-                initMainGame(window,renderer,exit);
+                initMainGame(window,renderer);
                 break;
         case 2: renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-                initHighScore(window,renderer,exit);
+                initHighScore(window,renderer);
                 break;
-        case 3: exit=true;
+        case 3: exitGame=true;
                 break;
         case 4:renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-                initInstruction(window,renderer,exit);
+                initInstruction(window,renderer);
                 break;
         }
     }
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    Mix_Quit();
+    IMG_Quit();
+    SDL_Quit();
     return 0;
 }
 
@@ -68,7 +73,7 @@ bool checkGameOver(int stickLength,land Land,stickman stick){
 
 bool checkPerfect(int stickLength,land Land,stickman stick){
     SDL_Rect rect_temp=Land.getPFinfo(1);
-    if(stick.getX()+stickLength>rect_temp.x+2 && stick.getX()+stickLength<=rect_temp.x+6)
+    if(stick.getX()+stickLength>rect_temp.x+2 && stick.getX()+stickLength<=rect_temp.x+7)
         return 1;
     else
         return 0;
@@ -102,7 +107,7 @@ void renderStickMan(gameRender& renderMan,Mix_Chunk* horseEffect,stickman& Man,b
             else
                 manInRender={Man.getX(),Man.getY(),76,76};
         }
-        if(positionRunning==0)
+        if(positionRunning==0 && soundOn)
             Mix_PlayChannel(0,horseEffect,0);
         positionRunning++;
         BGoffset--;
@@ -110,28 +115,21 @@ void renderStickMan(gameRender& renderMan,Mix_Chunk* horseEffect,stickman& Man,b
     renderMan.render(0,0,&manInRender,&manInImage);
 }
 
-int getScoreSize(int score){
-    int index=0;
-    if(score==0)
-        return 20;
-    while(score){
-        index++;
-        score/=10;
-    }
-    return 20*index;
-}
 
 string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore){
     gameRender renderFont(renderer);
     string s;
-    SDL_Rect name={80,197,0,20};
+    SDL_Rect name={90,195,0,20};
     SDL_Rect HSrect={0,0,400,400};
-    SDL_Rect save={110,193,96,30};
+    SDL_Rect save={130,193,96,30};
     SDL_Event event;
     bool quit=false;
     while(!quit){
          renderHighScore.render(0,0,&HSrect);
          renderFont.loadString(20,BLACK,s);
+         renderFont.setTextureSize();
+         name.h=renderFont.getHeight();
+         name.w=renderFont.getWidth();
          renderFont.render(0,0,&name);
          while(SDL_PollEvent(&event)){
             if(event.type==SDL_QUIT)
@@ -139,7 +137,6 @@ string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore){
             else if(event.type==SDL_KEYDOWN){
                 if(event.key.keysym.sym==SDLK_BACKSPACE && s.length()>0){
                     s.pop_back();
-                    name.w-=20;
                 }
                 else if(event.key.keysym.sym==SDLK_v && SDL_GetModState() & KMOD_CTRL){
                     name.w=+s.length()*20;
@@ -151,15 +148,17 @@ string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore){
                 else if(event.key.keysym.sym==SDLK_RETURN){
                      renderHighScore.render(0,0,&HSrect);
                      renderFont.loadString(24,RED,"Saved");
+                     renderFont.setTextureSize();
+                     save.h=renderFont.getHeight();
+                     save.w=renderFont.getWidth();
                      renderFont.render(0,0,&save);
                      SDL_RenderPresent(renderer);
                      return s;
                 }
             }
-            else if(event.type==SDL_TEXTINPUT && s.length()<8)
+            else if(event.type==SDL_TEXTINPUT && s.length()<11)
                 if( !((event.text.text[0] =='c' || event.text.text[0]=='C')&& (event.text.text[0]=='v'||event.text.text[0] =='V')&&SDL_GetModState()&KMOD_CTRL )){
                     s+=event.text.text;
-                    name.w+=20;
                 }
             }
         SDL_RenderPresent(renderer);
@@ -226,14 +225,12 @@ bool pauseCheck(int x,int y){
     return 0;
 }
 
-void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
-    //set icon window titlebar
-    SDL_Surface* iconTitleBar=IMG_Load("image/icontitlebar.png");
-    SDL_SetWindowIcon(window,iconTitleBar);
+void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
     //load music game effects
     Mix_HaltMusic();
     Mix_Music* gameMusic=Mix_LoadMUS("sound/maingame.wav");
-    Mix_PlayMusic(gameMusic,-1);
+    if(soundOn)
+        Mix_PlayMusic(gameMusic,-1);
     Mix_Chunk* butt_press=Mix_LoadWAV("sound/button_pressed.wav");
     Mix_Chunk* horse=Mix_LoadWAV("sound/horse.wav");
     Mix_Chunk* perfect=Mix_LoadWAV("sound/perfect.wav");
@@ -272,7 +269,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
     gameRender renderScore(renderer);
     int score=0;
     renderScore.loadFont(20,PURPLE,score);
-    SDL_Rect scoreRect={185,10,20,30};
+    SDL_Rect scoreRect={200,10,20,30};
     //load gameOver menu
     gameRender renderGameOver(renderer);
     renderGameOver.loadImage("image/gameover.png",&colorKey);
@@ -281,7 +278,6 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
     //load HighScore
     gameRender renderHighScore(renderer);
     renderHighScore.loadImage("image/GO_highscore.png",&colorKey);
-//    SDL_Rect highScore={0,0,400,400};
     //load Pause button
     gameRender renderPause(renderer);
     renderPause.loadImage("image/pause.png",&colorKey);
@@ -304,9 +300,15 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
 
     while(!quit){
         renderBackground(renderBG,BGoffset,score);
-        scoreRect.w=getScoreSize(score);
+
+        renderScore.setTextureSize();
+        scoreRect.h=renderScore.getHeight();
+        scoreRect.w=renderScore.getWidth();
+        scoreRect.x=200-scoreRect.w/2;
         renderScore.render(0,0,&scoreRect);
+
         renderPause.render(0,0,&pause);
+
         for(int i=0;i<10;i++){
             landTemp=Land.getLandInfo(i);
             pfTemp=Land.getPFinfo(i);
@@ -317,6 +319,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
             renderLand.render(0,0,&landTemp);
             renderPF.render(0,0,&pfTemp);
         }
+
         if(!dead)
             renderStickMan(renderMan,horse,Man,runningStatus,BGoffset,Land,scrollLand,gameOver);
         while(SDL_PollEvent(&event)){
@@ -327,14 +330,18 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
             if(event.type==SDL_MOUSEBUTTONDOWN){
                 if(pauseCheck(event.button.x,event.button.y)){
                     Mix_HaltChannel(0);
-                    Mix_PlayChannel(-1,butt_press,0);
+                    if(soundOn)
+                        Mix_PlayChannel(-1,butt_press,0);
                     renderResume.render(0,0,&resume);
                     SDL_RenderPresent(renderer);
                         if(playAgain())
                             quit=true;
-                        else
-                            Mix_PlayChannel(-1,horse,0);
-                    Mix_PlayChannel(-1,butt_press,0);
+                        else{
+                            if(soundOn)
+                                Mix_PlayChannel(-1,horse,0);
+                        }
+                        if(soundOn)
+                            Mix_PlayChannel(-1,butt_press,0);
                 }
             }
         }
@@ -372,7 +379,8 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
                     if(dead){
                         if(frame==0){
                             Mix_HaltChannel(0);
-                            Mix_PlayChannel(1,over,0);
+                            if(soundOn)
+                                Mix_PlayChannel(1,over,0);
                             SDL_Delay(500);
                         }
                         landTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength,4};
@@ -389,7 +397,8 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
                             else{
                                 name=getInfo(renderer,renderHighScore);
                                 scoreTemp.setInfo(name,score);
-                                Mix_PlayChannel(-1,butt_press,0);
+                                if(soundOn)
+                                    Mix_PlayChannel(-1,butt_press,0);
                                 ofstream fileWrite("hscore.dat",ios::app | ios::binary);
                                 fileWrite.write((char*)&scoreTemp,sizeof(highscore));
                                 SDL_Delay(1000);
@@ -397,7 +406,10 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
                             }
                             SDL_RenderPresent(renderer);
                             if(playAgain()){
-                                    Mix_PlayChannel(-1,butt_press,0);
+                                    if(soundOn){
+                                        Mix_PlayChannel(-1,butt_press,0);
+                                        SDL_Delay(100);
+                                    }
                                     BGoffset=0;
                                     stickLength=0;
                                     score=0;
@@ -426,7 +438,8 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
                 else{
                         //update
                         if(checkPerfect(stickLength,Land,stick)){
-                            Mix_PlayChannel(0,perfect,0);
+                            if(soundOn)
+                                Mix_PlayChannel(0,perfect,0);
                             PFnoti.render(0,0,&pfNoti);
                             score+=20;
                             SDL_RenderPresent(renderer);
@@ -451,15 +464,31 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer,bool& exitGame){
             SDL_RenderPresent(renderer);
     }
     Mix_HaltMusic();
+    SDL_Delay(100);
+    Mix_FreeChunk(butt_press);
+    Mix_FreeChunk(over);
+    Mix_FreeChunk(perfect);
+    Mix_FreeChunk(horse);
+    Mix_FreeMusic(gameMusic);
 }
 
-int initStartGame(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
-    Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 );
+int initStartGame(SDL_Window* window,SDL_Renderer* renderer){
+    //set icon window titlebar
+    SDL_Surface* iconTitleBar=IMG_Load("image/icontitlebar.png");
+    SDL_SetWindowIcon(window,iconTitleBar);
+    //load music effects
     Mix_Music* musicMenu=Mix_LoadMUS("sound/menu.wav");
     if(!Mix_PlayingMusic())
         Mix_PlayMusic(musicMenu,-1);
     Mix_Chunk* butt_cat=Mix_LoadWAV("sound/button.wav");
     Mix_Chunk* butt_press=Mix_LoadWAV("sound/button_pressed.wav");
+
+    gameRender buttonSound(renderer);
+    SDL_Color colorkey=WHITE;
+    buttonSound.loadImage("image/sound.png",&colorkey);
+    SDL_Rect soundIMG,soundRender;
+    soundRender={345,270,40,38};
+
     gameRender renderStart(renderer);
     renderStart.loadImage("image/mainmenu.png");
     SDL_Rect BGrect={0,0,400,400};
@@ -485,60 +514,85 @@ int initStartGame(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
     menuItem highscore(137,232,139,70);
     menuItem exit(141,316,139,70);
     menuItem inst(332,320,68,73);
-
-    enum button{DEFAULT=0,START,HIGHSCORE,EXIT,INST};
+    menuItem sound{345,270,40,38};
+    enum button{DEFAULT=0,START,HIGHSCORE,EXIT,INST,SOUND};
     button effButton=DEFAULT;
     SDL_Event event;
     while(true){
         while(SDL_PollEvent(&event)){
             renderStart.render(0,0,&BGrect);
+            if(soundOn){
+                soundIMG={1,0,40,38};
+                if(!Mix_PlayingMusic())
+                    Mix_PlayMusic(musicMenu,-1);
+            }
+            else{
+                soundIMG={51,0,40,38};
+                Mix_HaltMusic();
+            }
+            buttonSound.render(0,0,&soundRender,&soundIMG);
             if(event.type==SDL_QUIT){
                 return 3;
                 exitGame=true;
             }
             if(start.checkArea(event.button.x,event.button.y)){
                 buttonStart.render(0,0,&bStartRect,&defaultButton);
-                if(effButton!=START){
+                if(effButton!=START && soundOn){
                     Mix_PlayChannel(-1,butt_cat,0);
                     effButton=START;
                 }
                 if(event.type==SDL_MOUSEBUTTONDOWN){
-                    Mix_PlayChannel(-1,butt_press,0);
+                    if(soundOn)
+                        Mix_PlayChannel(-1,butt_press,0);
                     return 1;
                 }
             }
             else if(highscore.checkArea(event.button.x,event.button.y)){
                 buttonScore.render(0,0,&bScoreRect,&defaultButton);
-                if(effButton!=HIGHSCORE){
+                if(effButton!=HIGHSCORE && soundOn){
                     Mix_PlayChannel(-1,butt_cat,0);
                     effButton=HIGHSCORE;
                 }
                 if(event.type==SDL_MOUSEBUTTONDOWN){
-                    Mix_PlayChannel(-1,butt_press,0);
+                    if(soundOn)
+                        Mix_PlayChannel(-1,butt_press,0);
                     return 2;
                 }
             }
             else if(exit.checkArea(event.button.x,event.button.y)){
                 buttonExit.render(0,0,&bExitRect,&defaultButton);
-                if(effButton!=EXIT){
+                if(effButton!=EXIT && soundOn){
                     Mix_PlayChannel(-1,butt_cat,0);
                     effButton=EXIT;
                 }
-                if(event.type==SDL_MOUSEBUTTONDOWN){
-                    Mix_PlayChannel(-1,butt_press,0);
+                if(event.type==SDL_MOUSEBUTTONDOWN ){
+                    if(soundOn)
+                        Mix_PlayChannel(-1,butt_press,0);
                     return 3;
                     exitGame=true;
                 }
             }
             else if(inst.checkArea(event.button.x,event.button.y)){
                 buttonInst.render(0,0,&bInstRect);
-                if(effButton!=INST){
+                if(effButton!=INST && soundOn){
                     Mix_PlayChannel(-1,butt_cat,0);
                     effButton=INST;
                 }
                 if(event.type==SDL_MOUSEBUTTONDOWN){
-                    Mix_PlayChannel(-1,butt_press,0);
+                    if(soundOn)
+                        Mix_PlayChannel(-1,butt_press,0);
                     return 4;
+                }
+            }
+            else if(sound.checkArea(event.button.x,event.button.y)){
+                if(effButton!=SOUND && soundOn){
+                    Mix_PlayChannel(-1,butt_cat,0);
+                    effButton=SOUND;
+                }
+                if(event.type==SDL_MOUSEBUTTONDOWN){
+                    if(soundOn)
+                        Mix_PlayChannel(-1,butt_press,0);
+                    soundOn=!soundOn;
                 }
             }
             else
@@ -547,9 +601,13 @@ int initStartGame(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
             SDL_RenderPresent(renderer);
         }
     }
+    if(exitGame){
+        Mix_FreeChunk(butt_cat);
+        Mix_FreeChunk(butt_press);
+    }
 }
 
-void initHighScore(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
+void initHighScore(SDL_Window* window,SDL_Renderer* renderer){
     Mix_Chunk* butt_press=Mix_LoadWAV("sound/button_pressed.wav");
     fstream scoreFile;
     menuItem buttonBack(0,345,52,52);
@@ -560,11 +618,14 @@ void initHighScore(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
     scoreBoard.loadImage("image/score.png");
     SDL_Rect scoreRect={0,0,400,400};
     scoreBoard.render(0,0,&scoreRect);
-    SDL_Rect person[4];
-    person[0]={131,115,170,30};
-    person[1]={131,165,170,30};
-    person[2]={131,220,170,30};
-    person[3]={131,280,170,30};
+    SDL_Rect person[3];
+    person[0]={131,120,0,24};
+    person[1]={131,170,0,24};
+    person[2]={131,225,0,24};
+    SDL_Rect score[3];
+    score[0]={290,120,0,24};
+    score[1]={290,170,0,24};
+    score[2]={290,225,0,24};
     scoreFile.open("hscore.dat",ios::app | ios::out | ios::in | ios::binary);
     vector <highscore> listScore;
     while(!scoreFile.eof()){
@@ -573,13 +634,19 @@ void initHighScore(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
     }
     listScore.pop_back();
     vector <highscore>:: reverse_iterator read=listScore.rbegin();
-//    while(read!=listScore.rend()){
-//        (*read++).showInfo();
-//    }
     for(int i=0;i<3;i++){
-        temp=(*read).getName()+" - "+intToString((*read).getScore());
-        scoreBoard.loadString(23,RED,temp);
+        temp=(*read).getName();
+        scoreBoard.loadString(24,BLUE,temp);
+        scoreBoard.setTextureSize();
+        person[i].h=scoreBoard.getHeight();
+        person[i].w=scoreBoard.getWidth();
         scoreBoard.render(0,0,&person[i]);
+        temp=intToString((*read).getScore());
+        scoreBoard.loadString(24,BLUE,temp);
+        scoreBoard.setTextureSize();
+        score[i].h=scoreBoard.getHeight();
+        score[i].w=scoreBoard.getWidth();
+        scoreBoard.render(0,0,&score[i]);
         read++;
     }
     SDL_RenderPresent(renderer);
@@ -592,15 +659,19 @@ void initHighScore(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
             }
             else if(event.type==SDL_MOUSEBUTTONDOWN){
                 if(buttonBack.checkArea(event.button.x,event.button.y)){
-                    Mix_PlayChannel(-1,butt_press,0);
+                    if(soundOn)
+                        Mix_PlayChannel(-1,butt_press,0);
                     quit=true;
                 }
             }
         }
     }
+    scoreFile.close();
+    SDL_Delay(100);
+    Mix_FreeChunk(butt_press);
 }
 
-void initInstruction(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
+void initInstruction(SDL_Window* window,SDL_Renderer* renderer){
     Mix_Chunk* butt_press=Mix_LoadWAV("sound/button_pressed.wav");
     gameRender gif1(renderer);
     gif1.loadImage("image/inst1.png");
@@ -631,10 +702,13 @@ void initInstruction(SDL_Window* window,SDL_Renderer* renderer,bool& exitGame){
             }
             else if(event.type==SDL_MOUSEBUTTONDOWN){
                 if(buttonBack.checkArea(event.button.x,event.button.y)){
-                    Mix_PlayChannel(-1,butt_press,0);
+                    if(soundOn)
+                        Mix_PlayChannel(-1,butt_press,0);
                     quit=true;
                 }
             }
         }
     }
+    SDL_Delay(100);
+    Mix_FreeChunk(butt_press);
 }

@@ -1,10 +1,11 @@
 #include <SDL.h>
 #include <iostream>
 #include <SDL_image.h>
-#include "gameRender.h"
 #include <cstdlib>
 #include <SDL_ttf.h>
-#include <string.h>
+#include <sstream>
+
+#include "gameRender.h"
 
 gameRender::gameRender(SDL_Renderer* renderer_){
     renderer=renderer_;
@@ -18,13 +19,7 @@ gameRender::gameRender(SDL_Renderer* renderer_){
 gameRender::~gameRender(){
     SDL_DestroyRenderer(renderer);
     SDL_DestroyTexture(texture);
-    font=nullptr;
-    width=0;
-    height=0;
-}
-void gameRender::setPosition(int x,int y){
-    this->x=x;
-    this->y=y;
+    TTF_CloseFont(font);
 }
 
 void gameRender::render(int x,int y,SDL_Rect* dstrect,SDL_Rect* srcrect){
@@ -57,15 +52,6 @@ void gameRender::loadImage(std::string path,SDL_Color* colorKey ){
     SDL_FreeSurface(surface);
 }
 
-void gameRender::setColor(SDL_Color color_){
-    this->color=color_;
-}
-
-void gameRender::setSize(int height,int width){
-    this->height=height;
-    this->width=width;
-}
-
 int gameRender::getWidth(){
     return width;
 }
@@ -79,7 +65,7 @@ void gameRender::loadFont(int size,SDL_Color color,int score){
      SDL_Surface* surface=nullptr;
      TTF_Init();
      if(font==nullptr)
-        font=TTF_OpenFont("NKT.ttf",size);
+        font=TTF_OpenFont("SummerLove.otf",size);
      if(font==nullptr)
         std::cout<<"Failed to load font"<<TTF_GetError()<<std::endl;
      else{
@@ -89,32 +75,12 @@ void gameRender::loadFont(int size,SDL_Color color,int score){
      SDL_FreeSurface(surface);
 }
 
-int mypow(int x,int n){
-    if(n==0)
-        return 1;
-    else
-        return x*mypow(x,n-1);
-}
-std::string intToString(int integer){
-    char number[10];
-    std::string s;
-    int index=0,charCount=0,integerTemp=integer;
-    if(integer!=0){
-        while(integerTemp){
-            integerTemp/=10;
-            charCount++;
-        }
-        while(index<charCount){
-            number[index]=integer/mypow(10,charCount-1-index)+48;
-            integer%=mypow(10,charCount-1-index);
-            index++;
-        }
-        number[index]='\0';
-        s=std::string(number);
-    }
-    else
-        s="0";
-    return s;
+std::string intToString(int number)
+{
+    std::stringstream ss;
+    ss << number;
+    std::string str = ss.str();
+    return str;
 }
 
 bool gameRender::waitMouseDown(SDL_Event &event){
@@ -128,7 +94,7 @@ void gameRender::loadString(int size,SDL_Color color,std::string s){
      SDL_Surface* surface=nullptr;
      TTF_Init();
      if(font==nullptr)
-        font=TTF_OpenFont("NKT.ttf",size);
+        font=TTF_OpenFont("SummerLove.otf",size);
      if(font==nullptr)
         std::cout<<"Failed to load font"<<TTF_GetError()<<std::endl;
      else{
@@ -138,3 +104,6 @@ void gameRender::loadString(int size,SDL_Color color,std::string s){
      SDL_FreeSurface(surface);
 }
 
+void  gameRender::setTextureSize(){
+    SDL_QueryTexture(texture,NULL,NULL,&width,&height);
+}
