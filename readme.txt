@@ -1,3 +1,4 @@
-Stick Man game maded by Ngo Kien Tuan 
-Contact: fb.com/ngokientuan
+------------------------------------
+tick Man game maded by Ngo Kien Tuan 
+------------------------------------
 Email:	tuanngokien@gmail.com
