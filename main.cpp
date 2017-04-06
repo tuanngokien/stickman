@@ -65,7 +65,7 @@ int main(int argc,char** argv){
 
 bool checkGameOver(int stickLength,land Land,stickman stick){
     SDL_Rect rect_temp=Land.getLandInfo(1);
-    if(stick.getX()+stickLength>rect_temp.x+2 && stick.getX()+stickLength<=rect_temp.x+Land.getWidth(1))
+    if(stick.getX()+stickLength>rect_temp.x+2 && stick.getX()+stickLength<=rect_temp.x+Land.getWidth(1)+2)
         return 0;
     else
         return 1;
@@ -119,14 +119,14 @@ void renderStickMan(gameRender& renderMan,Mix_Chunk* horseEffect,stickman& Man,b
 string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore){
     gameRender renderFont(renderer);
     string s;
-    SDL_Rect name={90,195,0,20};
+    SDL_Rect name={78,186,0,20};
     SDL_Rect HSrect={0,0,400,400};
-    SDL_Rect save={130,193,96,30};
+    SDL_Rect save={125,187,96,30};
     SDL_Event event;
     bool quit=false;
     while(!quit){
          renderHighScore.render(0,0,&HSrect);
-         renderFont.loadString(20,BLACK,s);
+         renderFont.loadString(30,BLACK,s);
          renderFont.setTextureSize();
          name.h=renderFont.getHeight();
          name.w=renderFont.getWidth();
@@ -139,15 +139,16 @@ string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore){
                     s.pop_back();
                 }
                 else if(event.key.keysym.sym==SDLK_v && SDL_GetModState() & KMOD_CTRL){
-                    name.w=+s.length()*20;
                     s=SDL_GetClipboardText();
+                    while(s.length()>11)
+                        s.pop_back();
                 }
                 else if(event.key.keysym.sym==SDLK_c && SDL_GetModState() & KMOD_CTRL){
                     SDL_SetClipboardText(s.c_str());
                 }
                 else if(event.key.keysym.sym==SDLK_RETURN){
                      renderHighScore.render(0,0,&HSrect);
-                     renderFont.loadString(24,RED,"Saved");
+                     renderFont.loadString(35,RED,"Saved");
                      renderFont.setTextureSize();
                      save.h=renderFont.getHeight();
                      save.w=renderFont.getWidth();
@@ -268,7 +269,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
     //load Font and render score
     gameRender renderScore(renderer);
     int score=0;
-    renderScore.loadFont(20,PURPLE,score);
+    renderScore.loadFont(30,PURPLE,score);
     SDL_Rect scoreRect={200,10,20,30};
     //load gameOver menu
     gameRender renderGameOver(renderer);
@@ -280,12 +281,12 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
     renderHighScore.loadImage("image/GO_highscore.png",&colorKey);
     //load Pause button
     gameRender renderPause(renderer);
-    renderPause.loadImage("image/pause.png",&colorKey);
+    renderPause.loadImage("image/pause.png");
     SDL_Rect pause={360,10,30,30};
     //load Resume button
     gameRender renderResume(renderer);
     renderResume.loadImage("image/resume.png",&colorKey);
-    SDL_Rect resume={89,144,201,101};
+    SDL_Rect resume={89,144,198,99};
     //load current highscore
     fstream scoreFile("hscore.dat",ios::app | ios::out | ios::in | ios::binary);
     highscore scoreTemp;
@@ -367,11 +368,12 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
                 }
                 else {
                     if(scrollLand+stickLength>=0)
-                        landTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength-2,4};
+                        landTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength,4};
                     else
                         runningStatus=false;
                 }
-                    scrollLand--;
+                    if(runningStatus)
+                        scrollLand--;
                     renderStick.render(0,0,&landTemp);
             }
             if(!runningStatus){
@@ -421,7 +423,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
                                     scrollLand=0;
                                     stick.setPosition(Land.getWidth(0)-5,224);
                                     Man.setPosition(stick.getX()-30,stick.getY()-76);
-                                    renderScore.loadFont(20,PURPLE,score);
+                                    renderScore.loadFont(30,PURPLE,score);
                             }
                             else
                                 quit=true;
@@ -447,7 +449,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
                             Mix_HaltChannel(0);
                         }
                         else
-                            score+=10;
+                            score+=100;
                         Land.updateLandInfo();
                         stick.updateStickPosition(Land);
                         Man.setPosition(stick.getX()-30,stick.getY()-76);
@@ -487,7 +489,7 @@ int initStartGame(SDL_Window* window,SDL_Renderer* renderer){
     SDL_Color colorkey=WHITE;
     buttonSound.loadImage("image/sound.png",&colorkey);
     SDL_Rect soundIMG,soundRender;
-    soundRender={345,270,40,38};
+    soundRender={345,270,42,39};
 
     gameRender renderStart(renderer);
     renderStart.loadImage("image/mainmenu.png");
@@ -522,12 +524,12 @@ int initStartGame(SDL_Window* window,SDL_Renderer* renderer){
         while(SDL_PollEvent(&event)){
             renderStart.render(0,0,&BGrect);
             if(soundOn){
-                soundIMG={1,0,40,38};
+                soundIMG={0,0,42,39};
                 if(!Mix_PlayingMusic())
                     Mix_PlayMusic(musicMenu,-1);
             }
             else{
-                soundIMG={51,0,40,38};
+                soundIMG={49,0,42,39};
                 Mix_HaltMusic();
             }
             buttonSound.render(0,0,&soundRender,&soundIMG);
@@ -623,9 +625,9 @@ void initHighScore(SDL_Window* window,SDL_Renderer* renderer){
     person[1]={131,170,0,24};
     person[2]={131,225,0,24};
     SDL_Rect score[3];
-    score[0]={290,120,0,24};
-    score[1]={290,170,0,24};
-    score[2]={290,225,0,24};
+    score[0]={280,120,0,24};
+    score[1]={280,170,0,24};
+    score[2]={280,225,0,24};
     scoreFile.open("hscore.dat",ios::app | ios::out | ios::in | ios::binary);
     vector <highscore> listScore;
     while(!scoreFile.eof()){

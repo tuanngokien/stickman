@@ -47,7 +47,7 @@
 1489692281 c:\users\mypc\desktop\cprogramming\stickhero\land.h
 	<vector>
 
-1491405106 source:c:\users\mypc\desktop\cprogramming\stickman\gamerender.cpp
+1491463694 source:c:\users\mypc\desktop\cprogramming\stickman\gamerender.cpp
 	<SDL.h>
 	<iostream>
 	<SDL_image.h>
@@ -69,7 +69,7 @@
 1491007533 c:\users\mypc\desktop\cprogramming\stickman\land.h
 	<vector>
 
-1491404494 source:c:\users\mypc\desktop\cprogramming\stickman\main.cpp
+1491462465 source:c:\users\mypc\desktop\cprogramming\stickman\main.cpp
 	<iostream>
 	<SDL.h>
 	<SDL_image.h>

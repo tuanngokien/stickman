@@ -65,7 +65,7 @@ void gameRender::loadFont(int size,SDL_Color color,int score){
      SDL_Surface* surface=nullptr;
      TTF_Init();
      if(font==nullptr)
-        font=TTF_OpenFont("SummerLove.otf",size);
+        font=TTF_OpenFont("carbon.ttf",size);
      if(font==nullptr)
         std::cout<<"Failed to load font"<<TTF_GetError()<<std::endl;
      else{
@@ -94,7 +94,7 @@ void gameRender::loadString(int size,SDL_Color color,std::string s){
      SDL_Surface* surface=nullptr;
      TTF_Init();
      if(font==nullptr)
-        font=TTF_OpenFont("SummerLove.otf",size);
+        font=TTF_OpenFont("carbon.ttf",size);
      if(font==nullptr)
         std::cout<<"Failed to load font"<<TTF_GetError()<<std::endl;
      else{
