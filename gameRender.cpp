@@ -75,7 +75,7 @@ void gameRender::loadFont(int size,SDL_Color color,int score){
      SDL_FreeSurface(surface);
 }
 
-std::string intToString(int number)
+std::string gameRender::intToString(int number)
 {
     std::stringstream ss;
     ss << number;
@@ -104,6 +104,6 @@ void gameRender::loadString(int size,SDL_Color color,std::string s){
      SDL_FreeSurface(surface);
 }
 
-void  gameRender::setTextureSize(){
-    SDL_QueryTexture(texture,NULL,NULL,&width,&height);
+void  gameRender::setTextureSize(int& widthx,int& heightx){
+    SDL_QueryTexture(texture,NULL,NULL,&widthx,&heightx);
 }

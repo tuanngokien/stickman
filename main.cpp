@@ -82,12 +82,12 @@ bool checkPerfect(int stickLength,land Land,stickman stick){
 
 void renderStickMan(gameRender& renderMan,Mix_Chunk* horseEffect,stickman& Man,bool& runningStatus,int& BGoffset,land Land,int scrollLand,bool gameOver){
     SDL_Rect manInImage,manInRender;
-    static int positionRunning=0,fixed=1;
+    static int positionRunning=0,fixed=0;
     if(!runningStatus){
         manInImage=getRectManImage(2);
         manInRender={Man.getX()-25,Man.getY(),76,76};
-        fixed=0;
         positionRunning=0;
+        fixed=0;
         Mix_HaltChannel(0);
     }
     else{
@@ -116,7 +116,7 @@ void renderStickMan(gameRender& renderMan,Mix_Chunk* horseEffect,stickman& Man,b
 }
 
 
-string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore){
+string getPlayerInfo(SDL_Renderer* renderer,gameRender& renderHighScore){
     gameRender renderFont(renderer);
     string s;
     SDL_Rect name={78,186,0,20};
@@ -127,9 +127,7 @@ string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore){
     while(!quit){
          renderHighScore.render(0,0,&HSrect);
          renderFont.loadString(30,BLACK,s);
-         renderFont.setTextureSize();
-         name.h=renderFont.getHeight();
-         name.w=renderFont.getWidth();
+         renderFont.setTextureSize(name.w,name.h);
          renderFont.render(0,0,&name);
          while(SDL_PollEvent(&event)){
             if(event.type==SDL_QUIT)
@@ -149,9 +147,7 @@ string getInfo(SDL_Renderer* renderer,gameRender& renderHighScore){
                 else if(event.key.keysym.sym==SDLK_RETURN){
                      renderHighScore.render(0,0,&HSrect);
                      renderFont.loadString(35,RED,"Saved");
-                     renderFont.setTextureSize();
-                     save.h=renderFont.getHeight();
-                     save.w=renderFont.getWidth();
+                     renderFont.setTextureSize(save.w,save.h);
                      renderFont.render(0,0,&save);
                      SDL_RenderPresent(renderer);
                      return s;
@@ -228,12 +224,13 @@ bool pauseCheck(int x,int y){
 
 void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
     //load music game effects
-    Mix_HaltMusic();
     Mix_Music* gameMusic=Mix_LoadMUS("sound/maingame.wav");
     if(soundOn)
         Mix_PlayMusic(gameMusic,-1);
     Mix_Chunk* butt_press=Mix_LoadWAV("sound/button_pressed.wav");
+    Mix_Chunk* stick_grow=Mix_LoadWAV("sound/stick_grow.wav");
     Mix_Chunk* horse=Mix_LoadWAV("sound/horse.wav");
+    Mix_Chunk* scoreSound=Mix_LoadWAV("sound/score.wav");
     Mix_Chunk* perfect=Mix_LoadWAV("sound/perfect.wav");
     Mix_Chunk* over=Mix_LoadWAV("sound/gameover.wav");
     //load background image-- BGoffset for scrolling BG
@@ -260,6 +257,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
     stickman stick;
     stick.setPosition(Land.getWidth(0)-5,224);
     int stickLength=0;
+    SDL_Rect stickTemp;
       //load imgage StickMan, colorkey is white(remove white from image)
     gameRender renderMan(renderer);
     renderMan.loadImage("image/prince.png",&colorKey);
@@ -286,7 +284,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
     //load Resume button
     gameRender renderResume(renderer);
     renderResume.loadImage("image/resume.png",&colorKey);
-    SDL_Rect resume={89,144,198,99};
+    SDL_Rect resumeRect={89,144,198,99};
     //load current highscore
     fstream scoreFile("hscore.dat",ios::app | ios::out | ios::in | ios::binary);
     highscore scoreTemp;
@@ -294,22 +292,16 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
         scoreFile.read((char*)&scoreTemp,sizeof(highscore));
     }
     int currHighScore=scoreTemp.getScore();
-    string name;
+    scoreFile.close();
 
     SDL_Event event;
     bool quit=false,MouseDown=false,gameOver=false;
-
     while(!quit){
         renderBackground(renderBG,BGoffset,score);
-
-        renderScore.setTextureSize();
-        scoreRect.h=renderScore.getHeight();
-        scoreRect.w=renderScore.getWidth();
+        renderScore.setTextureSize(scoreRect.w,scoreRect.h);
         scoreRect.x=200-scoreRect.w/2;
         renderScore.render(0,0,&scoreRect);
-
         renderPause.render(0,0,&pause);
-
         for(int i=0;i<10;i++){
             landTemp=Land.getLandInfo(i);
             pfTemp=Land.getPFinfo(i);
@@ -320,7 +312,6 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
             renderLand.render(0,0,&landTemp);
             renderPF.render(0,0,&pfTemp);
         }
-
         if(!dead)
             renderStickMan(renderMan,horse,Man,runningStatus,BGoffset,Land,scrollLand,gameOver);
         while(SDL_PollEvent(&event)){
@@ -333,7 +324,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
                     Mix_HaltChannel(0);
                     if(soundOn)
                         Mix_PlayChannel(-1,butt_press,0);
-                    renderResume.render(0,0,&resume);
+                    renderResume.render(0,0,&resumeRect);
                     SDL_RenderPresent(renderer);
                         if(playAgain())
                             quit=true;
@@ -349,44 +340,54 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
         if(gameRender::waitMouseDown(event)&& !runningStatus && !dead){
             if(!(event.button.x> 360 && event.button.y<40) && stickLength<Land.getX(2)-Land.getWidth(0)-3 ){
                 stickLength+=4;
+                if(soundOn)
+                    Mix_PlayChannel(2,stick_grow,0);
                 MouseDown=true;
             }
-            landTemp={stick.getX(),stick.getY()-stickLength,4,stickLength};
-            renderStick.render(0,0,&landTemp);
+            stickTemp={stick.getX(),stick.getY()-stickLength,4,stickLength};
+            renderStick.render(0,0,&stickTemp);
         }
         else if(MouseDown){
             if(!dead){
+                //after the stick fall down, the man running to the next land
                 runningStatus=true;
                 gameOver=checkGameOver(stickLength,Land,stick);
+                //render scrolling land
                 if(!gameOver){
                     if(stick.getX()+scrollLand>=0)
-                        landTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength,4};
+                        stickTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength,4};
                     else if(Land.getX(1)+scrollLand>0)
-                        landTemp={0,stick.getY()-4,stickLength+stick.getX()+scrollLand-2,4};
+                        stickTemp={0,stick.getY()-4,stickLength+stick.getX()+scrollLand-2,4};
                     else
                         runningStatus=false;
                 }
                 else {
                     if(scrollLand+stickLength>=0)
-                        landTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength,4};
+                        stickTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength,4};
                     else
                         runningStatus=false;
                 }
                     if(runningStatus)
                         scrollLand--;
-                    renderStick.render(0,0,&landTemp);
+                    else
+                         BGoffset++;//background is rendered before decrease BGoffset,so if runningStatus==false the BG scrolling by 1
+                    renderStick.render(0,0,&stickTemp);
             }
             if(!runningStatus){
                 if(gameOver){
+                    //if gameover, delete current man(dead=false->dead=true) and create the man falling down
                     if(dead){
                         if(frame==0){
                             Mix_HaltChannel(0);
+                            BGoffset++;
+                            scrollLand++;
                             if(soundOn)
                                 Mix_PlayChannel(1,over,0);
                             SDL_Delay(500);
                         }
-                        landTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength,4};
-                        renderStick.render(0,0,&landTemp);
+                        stickTemp={stick.getX()+scrollLand-2,stick.getY()-4,stickLength,4};
+                        renderStick.render(0,0,&stickTemp);
+                        // render the man falling per frame
                         SDL_Rect ManInImage=getRectManImage(3),manInRender={Man.getX()+25,225+frame*4,73,73};
                         frame++;
                         renderMan.render(0,0,&manInRender,&ManInImage);
@@ -397,12 +398,13 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
                             if(score<=currHighScore)
                                 renderGameOver.render(0,0,&gameOverRect);
                             else{
-                                name=getInfo(renderer,renderHighScore);
+                                string name=getPlayerInfo(renderer,renderHighScore);
                                 scoreTemp.setInfo(name,score);
                                 if(soundOn)
                                     Mix_PlayChannel(-1,butt_press,0);
                                 ofstream fileWrite("hscore.dat",ios::app | ios::binary);
                                 fileWrite.write((char*)&scoreTemp,sizeof(highscore));
+                                fileWrite.close();
                                 SDL_Delay(1000);
                                 break;
                             }
@@ -435,25 +437,28 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
                     else{
                         if(frame==0)
                             dead=false;
+                        //set to default(false) when playagain
                     }
                 }
                 else{
-                        //update
+                        //load new score and update
                         if(checkPerfect(stickLength,Land,stick)){
                             if(soundOn)
                                 Mix_PlayChannel(0,perfect,0);
                             PFnoti.render(0,0,&pfNoti);
                             score+=20;
-                            SDL_RenderPresent(renderer);
-                            SDL_Delay(500);
-                            Mix_HaltChannel(0);
                         }
-                        else
-                            score+=100;
+                        else{
+                            score+=10;
+                            if(soundOn)
+                                Mix_PlayChannel(0,scoreSound,0);
+                        }
+                        renderScore.loadFont(20,PURPLE,score);
+                        SDL_RenderPresent(renderer);
+                        SDL_Delay(500);
                         Land.updateLandInfo();
                         stick.updateStickPosition(Land);
                         Man.setPosition(stick.getX()-30,stick.getY()-76);
-                        renderScore.loadFont(20,PURPLE,score);
                         stickLength=0;
                         MouseDown=false;
                         runningStatus=false;
@@ -469,6 +474,7 @@ void initMainGame(SDL_Window* window, SDL_Renderer* renderer){
     SDL_Delay(100);
     Mix_FreeChunk(butt_press);
     Mix_FreeChunk(over);
+    Mix_FreeChunk(scoreSound);
     Mix_FreeChunk(perfect);
     Mix_FreeChunk(horse);
     Mix_FreeMusic(gameMusic);
@@ -518,9 +524,10 @@ int initStartGame(SDL_Window* window,SDL_Renderer* renderer){
     menuItem inst(332,320,68,73);
     menuItem sound{345,270,40,38};
     enum button{DEFAULT=0,START,HIGHSCORE,EXIT,INST,SOUND};
-    button effButton=DEFAULT;
+    button Button=DEFAULT;
     SDL_Event event;
-    while(true){
+    bool quit=false;
+    while(!quit){
         while(SDL_PollEvent(&event)){
             renderStart.render(0,0,&BGrect);
             if(soundOn){
@@ -534,79 +541,77 @@ int initStartGame(SDL_Window* window,SDL_Renderer* renderer){
             }
             buttonSound.render(0,0,&soundRender,&soundIMG);
             if(event.type==SDL_QUIT){
-                return 3;
                 exitGame=true;
+                quit=true;
             }
             if(start.checkArea(event.button.x,event.button.y)){
                 buttonStart.render(0,0,&bStartRect,&defaultButton);
-                if(effButton!=START && soundOn){
+                if(Button!=START && soundOn)
                     Mix_PlayChannel(-1,butt_cat,0);
-                    effButton=START;
-                }
                 if(event.type==SDL_MOUSEBUTTONDOWN){
                     if(soundOn)
                         Mix_PlayChannel(-1,butt_press,0);
-                    return 1;
+                        quit=true;
                 }
+                Button=START;
             }
             else if(highscore.checkArea(event.button.x,event.button.y)){
                 buttonScore.render(0,0,&bScoreRect,&defaultButton);
-                if(effButton!=HIGHSCORE && soundOn){
+                if(Button!=HIGHSCORE && soundOn)
                     Mix_PlayChannel(-1,butt_cat,0);
-                    effButton=HIGHSCORE;
-                }
                 if(event.type==SDL_MOUSEBUTTONDOWN){
                     if(soundOn)
                         Mix_PlayChannel(-1,butt_press,0);
-                    return 2;
+                        quit=true;
                 }
+                Button=HIGHSCORE;
             }
             else if(exit.checkArea(event.button.x,event.button.y)){
                 buttonExit.render(0,0,&bExitRect,&defaultButton);
-                if(effButton!=EXIT && soundOn){
+                if(Button!=EXIT && soundOn)
                     Mix_PlayChannel(-1,butt_cat,0);
-                    effButton=EXIT;
-                }
                 if(event.type==SDL_MOUSEBUTTONDOWN ){
                     if(soundOn)
                         Mix_PlayChannel(-1,butt_press,0);
-                    return 3;
                     exitGame=true;
+                    quit=true;
                 }
+                Button=EXIT;
             }
             else if(inst.checkArea(event.button.x,event.button.y)){
                 buttonInst.render(0,0,&bInstRect);
-                if(effButton!=INST && soundOn){
+                if(Button!=INST && soundOn)
                     Mix_PlayChannel(-1,butt_cat,0);
-                    effButton=INST;
-                }
                 if(event.type==SDL_MOUSEBUTTONDOWN){
                     if(soundOn)
                         Mix_PlayChannel(-1,butt_press,0);
-                    return 4;
+                        quit=true;
                 }
+                Button=INST;
             }
             else if(sound.checkArea(event.button.x,event.button.y)){
-                if(effButton!=SOUND && soundOn){
+                if(Button!=SOUND && soundOn)
                     Mix_PlayChannel(-1,butt_cat,0);
-                    effButton=SOUND;
-                }
                 if(event.type==SDL_MOUSEBUTTONDOWN){
                     if(soundOn)
                         Mix_PlayChannel(-1,butt_press,0);
                     soundOn=!soundOn;
+                    quit=true;
                 }
+                Button=SOUND;
             }
             else
-                effButton=DEFAULT;
+                Button=DEFAULT;
             SDL_Delay(20);
             SDL_RenderPresent(renderer);
         }
     }
-    if(exitGame){
+    if(exitGame || Button==START){
+        Mix_FreeMusic(musicMenu);
         Mix_FreeChunk(butt_cat);
         Mix_FreeChunk(butt_press);
     }
+    return Button;
 }
 
 void initHighScore(SDL_Window* window,SDL_Renderer* renderer){
@@ -620,10 +625,10 @@ void initHighScore(SDL_Window* window,SDL_Renderer* renderer){
     scoreBoard.loadImage("image/score.png");
     SDL_Rect scoreRect={0,0,400,400};
     scoreBoard.render(0,0,&scoreRect);
-    SDL_Rect person[3];
-    person[0]={131,120,0,24};
-    person[1]={131,170,0,24};
-    person[2]={131,225,0,24};
+    SDL_Rect player[3];
+    player[0]={131,120,0,24};
+    player[1]={131,170,0,24};
+    player[2]={131,225,0,24};
     SDL_Rect score[3];
     score[0]={280,120,0,24};
     score[1]={280,170,0,24};
@@ -639,15 +644,11 @@ void initHighScore(SDL_Window* window,SDL_Renderer* renderer){
     for(int i=0;i<3;i++){
         temp=(*read).getName();
         scoreBoard.loadString(24,BLUE,temp);
-        scoreBoard.setTextureSize();
-        person[i].h=scoreBoard.getHeight();
-        person[i].w=scoreBoard.getWidth();
-        scoreBoard.render(0,0,&person[i]);
-        temp=intToString((*read).getScore());
+        scoreBoard.setTextureSize(player[i].w,player[i].h);
+        scoreBoard.render(0,0,&player[i]);
+        temp=gameRender::intToString((*read).getScore());
         scoreBoard.loadString(24,BLUE,temp);
-        scoreBoard.setTextureSize();
-        score[i].h=scoreBoard.getHeight();
-        score[i].w=scoreBoard.getWidth();
+        scoreBoard.setTextureSize(score[i].w,score[i].h);
         scoreBoard.render(0,0,&score[i]);
         read++;
     }

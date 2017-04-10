@@ -21,7 +21,3 @@ void highscore::setInfo(std::string name_,int score){
     strcpy(name,name_.c_str());
     this->score=score;
 }
-
-void highscore::showInfo(){
-    std::cout<<"Name: "<<name<<" -"<<score<<std::endl;
-}

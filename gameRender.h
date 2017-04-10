@@ -4,16 +4,16 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
-const SDL_Color CYAN = {0, 255, 255};
-const SDL_Color BLUE = {0, 0, 255};
-const SDL_Color ORANGE = {255, 165, 0};
-const SDL_Color YELLOW = {255, 255, 0};
-const SDL_Color LIME = {0, 255, 0};
-const SDL_Color PURPLE = {128, 0, 128};
-const SDL_Color RED = {255, 0, 0};
-const SDL_Color WHITE = {255, 255, 255};
-const SDL_Color BLACK = {0, 0, 0};
-const SDL_Color GREEN = {0, 128, 0};
+const SDL_Color CYAN = {0,255,255};
+const SDL_Color BLUE = {0,0,255};
+const SDL_Color ORANGE = {255,165,0};
+const SDL_Color YELLOW = {255,255,0};
+const SDL_Color LIME = {0,255,0};
+const SDL_Color PURPLE = {128,0,128};
+const SDL_Color RED = {255,0,0};
+const SDL_Color WHITE = {255,255,255};
+const SDL_Color BLACK = {0,0,0};
+const SDL_Color GREEN = {0,128,0};
 
 const SDL_Color DEFAULT_Color = BLACK;
 
@@ -37,10 +37,9 @@ public:
     void loadFont(int size,SDL_Color color,int score);
     void loadString(int size,SDL_Color color,std::string s);
     static bool waitMouseDown(SDL_Event &event);
-    void setTextureSize();
+    void setTextureSize(int& width,int& height);
+    static std::string intToString(int number);
 };
 
-//addon
-std::string intToString(int number);
 
 #endif

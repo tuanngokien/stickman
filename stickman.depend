@@ -47,7 +47,7 @@
 1489692281 c:\users\mypc\desktop\cprogramming\stickhero\land.h
 	<vector>
 
-1491463694 source:c:\users\mypc\desktop\cprogramming\stickman\gamerender.cpp
+1491556056 source:c:\users\mypc\desktop\cprogramming\stickman\gamerender.cpp
 	<SDL.h>
 	<iostream>
 	<SDL_image.h>
@@ -56,7 +56,7 @@
 	<sstream>
 	"gameRender.h"
 
-1491405128 c:\users\mypc\desktop\cprogramming\stickman\gamerender.h
+1491558232 c:\users\mypc\desktop\cprogramming\stickman\gamerender.h
 	<SDL.h>
 	<SDL_ttf.h>
 
@@ -69,7 +69,7 @@
 1491007533 c:\users\mypc\desktop\cprogramming\stickman\land.h
 	<vector>
 
-1491462465 source:c:\users\mypc\desktop\cprogramming\stickman\main.cpp
+1491839491 source:c:\users\mypc\desktop\cprogramming\stickman\main.cpp
 	<iostream>
 	<SDL.h>
 	<SDL_image.h>
@@ -99,12 +99,12 @@
 
 1489859944 c:\users\mypc\desktop\cprogramming\stickman\menuitem.h
 
-1490028735 source:c:\users\mypc\desktop\cprogramming\stickman\highscore.cpp
+1491556968 source:c:\users\mypc\desktop\cprogramming\stickman\highscore.cpp
 	<fstream>
 	"highscore.h"
 	<cstring>
 	<iostream>
 
-1490028783 c:\users\mypc\desktop\cprogramming\stickman\highscore.h
+1491556965 c:\users\mypc\desktop\cprogramming\stickman\highscore.h
 	<fstream>
 
